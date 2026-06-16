@@ -2,11 +2,18 @@
 pragma solidity ^0.8.20;
 
 interface IERC20 {
+    /// @notice transferFrom - core operation
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
     function transfer(address to, uint256 amount) external returns (bool);
 }
 
+/// @title VoteWeighted
+/// @notice Core contract for VoteWeighted on Arc Network
+/// @dev Built with Foundry, deployed on Arc testnet (Chain ID: 5042002)
 contract VoteWeighted {
+    /// @notice Contract version
+    string public constant VERSION = "1.1.0";
+
     IERC20 public immutable usdc;
     address public owner;
 
@@ -30,6 +37,7 @@ contract VoteWeighted {
         owner = msg.sender;
     }
 
+    /// @notice createPoll - core operation
     function createPoll(string calldata question, string[] calldata options, uint256 duration) external {
         require(options.length >= 2, "MIN_2_OPTIONS");
         Poll storage p = polls.push();
@@ -39,6 +47,7 @@ contract VoteWeighted {
         emit PollCreated(polls.length - 1, question, p.deadline);
     }
 
+    /// @notice vote - core operation
     function vote(uint256 pollId, uint256 option, uint256 amount) external {
         Poll storage p = polls[pollId];
         require(block.timestamp < p.deadline && !p.finalized, "CLOSED");
@@ -49,6 +58,7 @@ contract VoteWeighted {
         emit Voted(pollId, msg.sender, option, amount);
     }
 
+    /// @notice finalize - core operation
     function finalize(uint256 pollId) external {
         Poll storage p = polls[pollId];
         require(block.timestamp >= p.deadline && !p.finalized, "CANNOT");
@@ -58,6 +68,7 @@ contract VoteWeighted {
         emit Finalized(pollId, best);
     }
 
+    /// @notice refund - core operation
     function refund(uint256 pollId) external {
         Poll storage p = polls[pollId];
         require(p.finalized, "NOT_FINALIZED");
